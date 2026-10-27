@@ -40,61 +40,84 @@ $currentUser = Auth::user();
 <body>
 
     <!-- Header Navbar -->
-    <header class="app-header py-3 sticky-top">
+    <!-- Header Navbar -->
+    <header class="app-header py-2 py-md-3 sticky-top">
         <div class="container-fluid px-xxl-5 px-xl-4 px-3">
-            <div class="d-flex align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center justify-content-between gap-2 gap-sm-3">
                 <!-- Brand Title -->
-                <div class="d-flex align-items-center gap-3">
-                    <div class="brand-badge">
-                        <i class="bi bi-activity fs-4"></i>
+                <div class="d-flex align-items-center gap-2 gap-sm-3 min-w-0">
+                    <div class="brand-badge flex-shrink-0">
+                        <i class="bi bi-activity fs-5 fs-sm-4"></i>
                     </div>
-                    <div>
-                        <h1 class="h5 mb-0 fw-bold text-dark">Monitoring Status Website - UNTAN</h1>
-                        <span class="text-muted small">Pemantauan Ketersediaan Layanan Web Universitas Tanjungpura</span>
+                    <div class="min-w-0">
+                        <h1 class="h6 h5-sm mb-0 fw-bold text-dark text-truncate">
+                            <span class="d-inline d-sm-none">Monitoring UNTAN</span>
+                            <span class="d-none d-sm-inline">Monitoring Status Website - UNTAN</span>
+                        </h1>
+                        <span class="text-muted small d-none d-md-inline">Pemantauan Ketersediaan Layanan Web Universitas Tanjungpura</span>
                     </div>
                 </div>
 
                 <!-- Grouped Action Buttons (Selalu Rapi Berjajar di Kanan) -->
-                <div class="d-flex align-items-center gap-2 flex-nowrap">
-
+                <div class="d-flex align-items-center gap-1 gap-sm-2 flex-nowrap flex-shrink-0">
 
                     <!-- Tombol Cek Semua (Semua Pengunjung) -->
-                    <button type="button" class="btn btn-header-action btn-outline-primary" id="btnCheckAll" onclick="checkAllWebsites()">
+                    <button type="button" class="btn btn-header-action btn-outline-primary" id="btnCheckAll" onclick="checkAllWebsites()" title="Cek status semua website sekarang">
                         <i class="bi bi-arrow-clockwise"></i>
-                        <span>Cek Semua Sekarang</span>
+                        <span class="d-none d-lg-inline">Cek Semua Sekarang</span>
+                        <span class="d-none d-sm-inline d-lg-none">Cek Semua</span>
                     </button>
 
-                    <!-- Tombol Panduan Status (Toggle Sidebar Kanan) -->
-                    <button type="button" class="btn btn-header-action btn-light border text-dark" id="btnOpenGuide" onclick="toggleGuideSidebar()" title="Buka/Tutup Panduan Status di Sisi Kanan">
+                    <!-- Tombol Panduan Status (Toggle Sidebar / Offcanvas di Mobile) -->
+                    <button type="button" class="btn btn-header-action btn-light border text-dark" id="btnOpenGuide" onclick="toggleGuideSidebar()" title="Buka Panduan Status HTTP & Respon">
                         <i class="bi bi-book-half text-primary"></i>
-                        <span>Panduan</span>
+                        <span class="d-none d-md-inline">Panduan</span>
                     </button>
                     
                     <?php if ($isLoggedIn): ?>
-                        <!-- Tombol Pengaturan Master Data (Hanya Admin) -->
-                        <button type="button" class="btn btn-header-action btn-light border text-dark" onclick="openMasterSettingsModal()">
-                            <i class="bi bi-gear-fill text-secondary"></i>
-                            <span>Pengaturan</span>
-                        </button>
-
                         <!-- Tombol Tambah Website (Hanya Admin) -->
-                        <button type="button" class="btn btn-header-action btn-primary shadow-sm" onclick="openAddModal()">
+                        <button type="button" class="btn btn-header-action btn-primary shadow-sm" onclick="openAddModal()" title="Tambah Website Baru">
                             <i class="bi bi-plus-lg"></i>
-                            <span>Tambah Website</span>
+                            <span class="d-none d-md-inline">Tambah Website</span>
+                            <span class="d-none d-sm-inline d-md-none">Tambah</span>
                         </button>
 
-                        <!-- Profil Admin & Tombol Logout -->
-                        <div class="d-flex align-items-center gap-1 ps-1 border-start">
-                            <button type="button" class="btn btn-header-action btn-outline-danger" onclick="handleLogout()" title="Keluar dari sesi Administrator">
-                                <i class="bi bi-box-arrow-right"></i>
-                                <span>Logout</span>
+                        <!-- Menu Dropdown Administrator (Responsive & Rapi) -->
+                        <div class="dropdown">
+                            <button type="button" class="btn btn-header-action btn-light border text-dark dropdown-toggle px-2 px-sm-3" data-bs-toggle="dropdown" aria-expanded="false" title="Menu Administrator">
+                                <i class="bi bi-person-fill text-primary"></i>
+                                <span class="d-none d-lg-inline"><?php echo htmlspecialchars($currentUser['username'] ?? 'Admin'); ?></span>
                             </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border rounded-3 mt-1">
+                                <li>
+                                    <h6 class="dropdown-header small text-muted">Administrator: <strong><?php echo htmlspecialchars($currentUser['username'] ?? 'Admin'); ?></strong></h6>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="javascript:void(0)" onclick="openMasterSettingsModal()">
+                                        <i class="bi bi-gear-fill text-secondary"></i>
+                                        <span>Pengaturan Master Data</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="javascript:void(0)" onclick="exportToXlsx()">
+                                        <i class="bi bi-file-earmark-excel-fill text-success"></i>
+                                        <span>Download Laporan Excel (.xlsx)</span>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="javascript:void(0)" onclick="handleLogout()">
+                                        <i class="bi bi-box-arrow-right"></i>
+                                        <span>Keluar (Logout)</span>
+                                    </a>
+                                </li>
+                            </ul>
                         </div>
                     <?php else: ?>
                         <!-- Tombol Login Admin (Saat Belum Login) -->
                         <button type="button" class="btn btn-header-action btn-primary shadow-sm" onclick="openLoginModal()" title="Masuk sebagai Administrator">
                             <i class="bi bi-box-arrow-in-right"></i>
-                            <span>Login Admin</span>
+                            <span class="d-none d-sm-inline">Login Admin</span>
                         </button>
                     <?php endif; ?>
                 </div>
@@ -103,97 +126,113 @@ $currentUser = Auth::user();
     </header>
 
     <!-- Main Content -->
-    <main class="container-fluid px-xxl-5 px-xl-4 px-3 py-4">
+    <main class="container-fluid px-xxl-5 px-xl-4 px-3 py-3 py-md-4">
 
         <!-- 1. Ringkasan Metrik KPI (Dapat Diklik untuk Filter Cepat) -->
-        <section class="row g-3 mb-4" aria-label="Statistik Monitoring">
+        <section class="row g-2 g-md-3 mb-3 mb-md-4" aria-label="Statistik Monitoring">
             <div class="col-6 col-lg-3">
-                <div class="metric-card metric-card-clickable d-flex align-items-center gap-3" id="cardStatTotal" role="button" tabindex="0" title="Klik untuk menampilkan semua website" onclick="filterByMetricCard('all')">
-                    <div class="metric-icon-box metric-icon-total">
+                <div class="metric-card metric-card-clickable d-flex align-items-center gap-2 gap-sm-3" id="cardStatTotal" role="button" tabindex="0" title="Klik untuk menampilkan semua website" onclick="filterByMetricCard('all')">
+                    <div class="metric-icon-box metric-icon-total flex-shrink-0">
                         <i class="bi bi-globe2"></i>
                     </div>
-                    <div class="flex-grow-1">
-                        <span class="text-muted small fw-semibold d-block">TOTAL WEBSITE</span>
-                        <span class="fs-4 fw-bold text-dark" id="statTotal">-</span>
+                    <div class="flex-grow-1 min-w-0">
+                        <span class="metric-card-label text-muted small fw-semibold d-block text-truncate">TOTAL WEBSITE</span>
+                        <span class="metric-card-value fs-4 fw-bold text-dark" id="statTotal">-</span>
                     </div>
                     <span class="metric-filter-badge"><i class="bi bi-funnel-fill"></i> Filter</span>
                 </div>
             </div>
 
             <div class="col-6 col-lg-3">
-                <div class="metric-card metric-card-clickable d-flex align-items-center gap-3" id="cardStatActive" role="button" tabindex="0" title="Klik untuk memfilter website Aktif (200)" onclick="filterByMetricCard('active')">
-                    <div class="metric-icon-box metric-icon-active">
+                <div class="metric-card metric-card-clickable d-flex align-items-center gap-2 gap-sm-3" id="cardStatActive" role="button" tabindex="0" title="Klik untuk memfilter website Aktif (200)" onclick="filterByMetricCard('active')">
+                    <div class="metric-icon-box metric-icon-active flex-shrink-0">
                         <i class="bi bi-check-circle-fill"></i>
                     </div>
-                    <div class="flex-grow-1">
-                        <span class="text-muted small fw-semibold d-block">WEBSITE AKTIF (200)</span>
-                        <span class="fs-4 fw-bold text-success" id="statActive">-</span>
+                    <div class="flex-grow-1 min-w-0">
+                        <span class="metric-card-label text-muted small fw-semibold d-block text-truncate">WEBSITE AKTIF (200)</span>
+                        <span class="metric-card-value fs-4 fw-bold text-success" id="statActive">-</span>
                     </div>
                     <span class="metric-filter-badge"><i class="bi bi-funnel-fill"></i> Filter</span>
                 </div>
             </div>
 
             <div class="col-6 col-lg-3">
-                <div class="metric-card metric-card-clickable d-flex align-items-center gap-3" id="cardStatError" role="button" tabindex="0" title="Klik untuk menampilkan semua website yang Error Server" onclick="filterByMetricCard('error')">
-                    <div class="metric-icon-box metric-icon-error">
+                <div class="metric-card metric-card-clickable d-flex align-items-center gap-2 gap-sm-3" id="cardStatError" role="button" tabindex="0" title="Klik untuk menampilkan semua website yang Error Server" onclick="filterByMetricCard('error')">
+                    <div class="metric-icon-box metric-icon-error flex-shrink-0">
                         <i class="bi bi-exclamation-triangle-fill"></i>
                     </div>
-                    <div class="flex-grow-1">
-                        <span class="text-muted small fw-semibold d-block">ERROR SERVER (4xx/5xx)</span>
-                        <span class="fs-4 fw-bold text-danger" id="statError">-</span>
+                    <div class="flex-grow-1 min-w-0">
+                        <span class="metric-card-label text-muted small fw-semibold d-block text-truncate">ERROR SERVER (4xx/5xx)</span>
+                        <span class="metric-card-value fs-4 fw-bold text-danger" id="statError">-</span>
                     </div>
                     <span class="metric-filter-badge"><i class="bi bi-funnel-fill"></i> Filter</span>
                 </div>
             </div>
 
             <div class="col-6 col-lg-3">
-                <div class="metric-card d-flex align-items-center gap-3" id="cardStatLatency">
-                    <div class="metric-icon-box metric-icon-latency">
+                <div class="metric-card d-flex align-items-center gap-2 gap-sm-3" id="cardStatLatency">
+                    <div class="metric-icon-box metric-icon-latency flex-shrink-0">
                         <i class="bi bi-lightning-charge-fill"></i>
                     </div>
-                    <div class="flex-grow-1">
-                        <span class="text-muted small fw-semibold d-block">RATA-RATA RESPON</span>
-                        <span class="fs-4 fw-bold text-primary" id="statAvgLatency">-</span>
+                    <div class="flex-grow-1 min-w-0">
+                        <span class="metric-card-label text-muted small fw-semibold d-block text-truncate">RATA-RATA RESPON</span>
+                        <span class="metric-card-value fs-4 fw-bold text-primary" id="statAvgLatency">-</span>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- 2. Filter & Search Toolbar + Jam Realtime & Auto Refresh -->
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
-            <div class="d-flex flex-wrap align-items-center gap-2 flex-grow-1" style="max-width: 650px;">
-                <div class="input-group shadow-sm" style="max-width: 300px;">
-                    <span class="input-group-text bg-white border-end-0 text-muted">
-                        <i class="bi bi-search"></i>
-                    </span>
-                    <input type="text" class="form-control border-start-0 ps-0" id="searchInput" placeholder="Cari Fakultas, Prodi, atau URL...">
+        <div class="row g-2 align-items-center mb-3">
+            <!-- Sisi Kiri: Search Input & Dropdowns -->
+            <div class="col-12 col-lg-7">
+                <div class="row g-2">
+                    <div class="col-12 col-sm-6">
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-white border-end-0 text-muted">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="searchInput" placeholder="Cari Fakultas, Prodi, atau URL...">
+                            <button class="btn btn-white bg-white border border-start-0 text-muted d-none" type="button" id="btnClearSearch" onclick="clearSearch()" title="Hapus Pencarian">
+                                <i class="bi bi-x-circle-fill"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="col-7 col-sm-3">
+                        <select class="form-select shadow-sm" id="filterCategory">
+                            <option value="all">Semua Fakultas / Unit</option>
+                        </select>
+                    </div>
+
+                    <div class="col-5 col-sm-3">
+                        <select class="form-select shadow-sm" id="filterStatus">
+                            <option value="all">Semua Status</option>
+                            <option value="active">Hanya Aktif</option>
+                            <option value="error">Hanya Error Server</option>
+                        </select>
+                    </div>
                 </div>
-
-                <select class="form-select shadow-sm" id="filterCategory" style="max-width: 200px;">
-                    <option value="all">Semua Fakultas / Unit</option>
-                </select>
-
-                <select class="form-select shadow-sm" id="filterStatus" style="max-width: 150px;">
-                    <option value="all">Semua Status</option>
-                    <option value="active">Hanya Aktif</option>
-                    <option value="error">Hanya Error Server</option>
-                </select>
             </div>
 
-            <!-- Jam Realtime, Auto Refresh, & Terakhir Diperiksa -->
-            <div class="d-flex align-items-center flex-wrap gap-2">
-                <div class="d-flex align-items-center gap-2 px-3 py-1 bg-white rounded-pill border shadow-sm small">
-                    <i class="bi bi-clock-history text-primary"></i>
-                    <span id="liveClock" class="fw-semibold text-dark">--:--:-- WIB</span>
-                </div>
+            <!-- Sisi Kanan: Jam Realtime, Auto Refresh, & Terakhir Diperiksa -->
+            <div class="col-12 col-lg-5">
+                <div class="d-flex align-items-center justify-content-between justify-content-lg-end flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center gap-2 px-2 px-sm-3 py-1 bg-white rounded-pill border shadow-sm small">
+                            <i class="bi bi-clock-history text-primary"></i>
+                            <span id="liveClock" class="fw-semibold text-dark">--:--:-- WIB</span>
+                        </div>
 
-                <div class="form-check form-switch mb-0 bg-white px-3 py-1 rounded-pill border shadow-sm small d-flex align-items-center gap-2">
-                    <input class="form-check-input ms-0 me-1 mt-0" type="checkbox" id="autoRefreshSwitch">
-                    <label class="form-check-label text-secondary mb-0" for="autoRefreshSwitch">Auto-refresh (60s)</label>
-                </div>
+                        <div class="form-check form-switch mb-0 bg-white px-2 px-sm-3 py-1 rounded-pill border shadow-sm small d-flex align-items-center gap-2">
+                            <input class="form-check-input ms-0 me-1 mt-0" type="checkbox" id="autoRefreshSwitch">
+                            <label class="form-check-label text-secondary mb-0 small" for="autoRefreshSwitch">Auto (60s)</label>
+                        </div>
+                    </div>
 
-                <div class="text-muted small ps-1">
-                    <i class="bi bi-arrow-repeat me-1 text-secondary"></i> Terakhir dicek: <span id="statLastChecked" class="fw-semibold text-dark">-</span>
+                    <div class="text-muted small ps-1 w-100 w-sm-auto text-end text-lg-start">
+                        <i class="bi bi-arrow-repeat me-1 text-secondary"></i> Terakhir dicek: <span id="statLastChecked" class="fw-semibold text-dark">-</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -210,47 +249,64 @@ $currentUser = Auth::user();
                     <span class="badge bg-primary text-white rounded-pill px-2 py-1"><i class="bi bi-folder2-open me-1"></i>Kategori</span>
                     <span class="fw-bold text-dark small">Pilih Fakultas / Unit Kerja:</span>
                 </div>
-                <div class="d-flex align-items-center gap-3">
-                    <div class="small text-muted" id="tabItemsSummary">
+                <div class="d-flex align-items-center gap-2 gap-sm-3">
+                    <!-- Toggle Mode Tampilan (Kartu vs Tabel) -->
+                    <div class="view-mode-toggle btn-group btn-group-sm p-1 bg-light rounded-pill border" role="group" aria-label="Pilihan Tampilan">
+                        <button type="button" class="btn btn-sm rounded-pill px-2 px-sm-3 py-1 active" id="btnViewCard" onclick="setViewMode('card')" title="Tampilan Kartu (Optimal untuk HP/Tablet)">
+                            <i class="bi bi-grid-fill me-1"></i><span>Kartu</span>
+                        </button>
+                        <button type="button" class="btn btn-sm rounded-pill px-2 px-sm-3 py-1 text-secondary" id="btnViewTable" onclick="setViewMode('table')" title="Tampilan Tabel Standar">
+                            <i class="bi bi-table me-1"></i><span>Tabel</span>
+                        </button>
+                    </div>
+
+                    <div class="small text-muted d-none d-lg-block" id="tabItemsSummary">
                         Menampilkan semua website
                     </div>
                     <?php if ($isLoggedIn): ?>
-                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 shadow-sm" onclick="exportToXlsx()" title="Download Laporan Status ke Excel (.xlsx)">
+                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-semibold d-none d-sm-inline-flex align-items-center gap-1 shadow-sm" onclick="exportToXlsx()" title="Download Laporan Status ke Excel (.xlsx)">
                         <i class="bi bi-file-earmark-excel-fill"></i>
                         <span>Export XLSX</span>
                     </button>
                     <?php endif; ?>
                 </div>
             </div>
-            <ul class="nav nav-pills custom-category-tabs" id="categoryTabs" role="tablist">
-                <li class="nav-item">
-                    <button class="nav-link active" data-category-id="all" type="button">
-                        <i class="bi bi-grid-fill"></i>
-                        <span>Semua Fakultas / Unit</span>
-                        <span class="tab-count-badge" id="badgeCountAll">0</span>
-                    </button>
-                </li>
-            </ul>
+            <!-- Horizontal Scrollable Container untuk Chips Tab -->
+            <div class="custom-category-tabs-scroll">
+                <ul class="nav nav-pills custom-category-tabs" id="categoryTabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" data-category-id="all" type="button">
+                            <i class="bi bi-grid-fill"></i>
+                            <span>Semua Fakultas / Unit</span>
+                            <span class="tab-count-badge" id="badgeCountAll">0</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
         </div>
 
-        <!-- 4. Area Konten Utama: Tabel Monitoring (Kiri) & Panduan Status (Kanan) -->
-        <div class="row g-4 align-items-start" id="monitoringMainRow">
-            <!-- Kolom Kiri: Tabel Utama Monitoring -->
+        <!-- 4. Area Konten Utama: Tabel / Kartu Monitoring (Kiri) & Panduan Status (Kanan) -->
+        <div class="row g-2 g-md-4 align-items-start" id="monitoringMainRow">
+            <!-- Kolom Kiri: Tabel / Kartu Utama Monitoring -->
             <div class="col-12 col-xl-9 col-lg-8" id="tableColumn">
                 <div class="monitoring-card">
-                    <div class="table-responsive">
+                    <!-- Kontainer Tampilan Kartu (Default Mobile) -->
+                    <div id="monitoringCardsContainer" class="monitoring-cards-container p-2 p-sm-3 d-none">
+                        <!-- Diisi secara dinamis oleh JavaScript saat mode Kartu -->
+                    </div>
+
+                    <!-- Kontainer Tampilan Tabel -->
+                    <div class="table-responsive" id="monitoringTableContainer">
                         <table class="table table-monitoring align-middle" id="monitoringTable">
                             <thead>
                                 <tr>
                                     <th class="text-center" style="width: 50px;">NO</th>
-                                    <th style="width: 280px;">FAKULTAS / PRODI</th>
-                                    <th style="min-width: 240px;">URL</th>
+                                    <th style="min-width: 240px;">FAKULTAS / PRODI</th>
+                                    <th style="min-width: 220px;">URL</th>
                                     <th style="width: 140px;">STATUS</th>
                                     <th style="width: 110px;">KODE HTTP</th>
                                     <th style="width: 130px;">RESPON (MS)</th>
-                                    <?php if ($isLoggedIn): ?>
                                     <th class="text-end" style="width: 120px;" id="thAction">AKSI</th>
-                                    <?php endif; ?>
                                 </tr>
                             </thead>
                             <tbody id="monitoringTableBody">
@@ -266,116 +322,134 @@ $currentUser = Auth::user();
                 </div>
             </div>
 
-            <!-- Kolom Kanan: Panduan Status HTTP & Waktu Respon (Sticky Sidebar) -->
+            <!-- Kolom Kanan: Panduan Status HTTP & Waktu Respon (Sticky Sidebar di Desktop, Offcanvas Drawer di Mobile) -->
             <div class="col-12 col-xl-3 col-lg-4" id="guideSidebarColumn">
-                <aside class="guide-sidebar-card sticky-sidebar" aria-label="Panduan Kode Status">
-                    <!-- Header Sidebar Panduan -->
-                    <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom">
+                <div class="offcanvas-lg offcanvas-end guide-sidebar-offcanvas" tabindex="-1" id="guideSidebarOffcanvas" aria-labelledby="guideSidebarLabel">
+                    <!-- Header Offcanvas khusus layar kecil (< 992px) -->
+                    <div class="offcanvas-header d-lg-none border-bottom p-3">
                         <div class="d-flex align-items-center gap-2">
                             <div class="sidebar-icon-box">
                                 <i class="bi bi-book-half text-primary"></i>
                             </div>
                             <div>
-                                <h2 class="h6 fw-bold mb-0 text-dark">Panduan Status</h2>
-                                <span class="text-muted" style="font-size: 0.75rem;">Kamus Kode &amp; Respon</span>
+                                <h5 class="offcanvas-title fw-bold mb-0 text-dark" id="guideSidebarLabel">Panduan Status</h5>
+                                <span class="text-muted small">Kamus Kode HTTP &amp; Respon</span>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-sm btn-light border text-secondary rounded-pill px-2 py-1" onclick="toggleGuideSidebar()" title="Sembunyikan Panduan">
-                            <i class="bi bi-x-lg"></i>
-                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#guideSidebarOffcanvas" aria-label="Tutup"></button>
                     </div>
 
-                    <!-- Penjelasan Singkat Kode 200 (OK) -->
-                    <div class="alert alert-success border-success-subtle p-3 mb-3 rounded-3 shadow-2xs">
-                        <div class="d-flex align-items-start gap-2">
-                            <i class="bi bi-check-circle-fill text-success fs-5 flex-shrink-0 mt-0"></i>
-                            <div>
-                                <span class="fw-bold text-success d-block small mb-1">Kode 200 (OK) = Normal</span>
-                                <p class="small text-dark mb-0 lh-sm" style="font-size: 0.8rem;">
-                                    Permintaan berhasil. Server sehat, online, dan halaman dapat dimuat tanpa gangguan.
+                    <div class="offcanvas-body p-0">
+                        <aside class="guide-sidebar-card sticky-sidebar w-100" aria-label="Panduan Kode Status">
+                            <!-- Header Sidebar Panduan (Desktop >= 992px) -->
+                            <div class="d-none d-lg-flex align-items-center justify-content-between pb-3 mb-3 border-bottom">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="sidebar-icon-box">
+                                        <i class="bi bi-book-half text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="h6 fw-bold mb-0 text-dark">Panduan Status</h2>
+                                        <span class="text-muted" style="font-size: 0.75rem;">Kamus Kode &amp; Respon</span>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-light border text-secondary rounded-pill px-2 py-1" onclick="toggleGuideSidebar()" title="Sembunyikan Panduan">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+
+                            <!-- Penjelasan Singkat Kode 200 (OK) -->
+                            <div class="alert alert-success border-success-subtle p-3 mb-3 rounded-3 shadow-2xs">
+                                <div class="d-flex align-items-start gap-2">
+                                    <i class="bi bi-check-circle-fill text-success fs-5 flex-shrink-0 mt-0"></i>
+                                    <div>
+                                        <span class="fw-bold text-success d-block small mb-1">Kode 200 (OK) = Normal</span>
+                                        <p class="small text-dark mb-0 lh-sm" style="font-size: 0.8rem;">
+                                            Permintaan berhasil. Server sehat, online, dan halaman dapat dimuat tanpa gangguan.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Kumpulan Kartu Status HTTP Vertikal Compact -->
+                            <div class="guide-status-list mb-3">
+                                <span class="text-muted text-uppercase fw-bold d-block mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">Arti Kode HTTP</span>
+                                
+                                <div class="guide-compact-item mb-2">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="guide-badge badge-http-200">200 OK</span>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">Aktif / Berhasil</span>
+                                    </div>
+                                    <p class="text-muted small mb-0 lh-sm">Website normal, data terkirim lengkap, dan dapat dibuka lancar.</p>
+                                </div>
+
+                                <div class="guide-compact-item mb-2">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="guide-badge badge-http-300">301 / 302</span>
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle">Redirect</span>
+                                    </div>
+                                    <p class="text-muted small mb-0 lh-sm">Dialihkan otomatis (misal HTTP ke HTTPS atau SSO).</p>
+                                </div>
+
+                                <div class="guide-compact-item mb-2">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="guide-badge badge-http-400">403 Forbidden</span>
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Akses Dibatasi</span>
+                                    </div>
+                                    <p class="text-muted small mb-0 lh-sm">Akses ditolak (butuh hak login khusus, token, atau firewall).</p>
+                                </div>
+
+                                <div class="guide-compact-item mb-2">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="guide-badge badge-http-400">404 Not Found</span>
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Tidak Ada</span>
+                                    </div>
+                                    <p class="text-muted small mb-0 lh-sm">Alamat URL atau berkas halaman tidak ditemukan / dihapus.</p>
+                                </div>
+
+                                <div class="guide-compact-item mb-2">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="guide-badge badge-http-500">500 / 502 / 530</span>
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Error Server</span>
+                                    </div>
+                                    <p class="text-muted small mb-0 lh-sm">Kesalahan skrip internal, database error, atau Bad Gateway.</p>
+                                </div>
+
+                                <div class="guide-compact-item mb-2">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="guide-badge badge-http-0">ERR / Timeout</span>
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Down / Timeout</span>
+                                    </div>
+                                    <p class="text-muted small mb-0 lh-sm">Server tidak merespon (&gt; 12 detik) atau domain mati.</p>
+                                </div>
+                            </div>
+
+                            <!-- Keterangan Satuan Respon (ms) -->
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="bi bi-speedometer2 text-primary"></i>
+                                    <span class="fw-bold small text-dark">Waktu Respon (ms)</span>
+                                </div>
+                                <p class="text-muted small mb-2 lh-sm" style="font-size: 0.78rem;">
+                                    Waktu yang dibutuhkan server untuk merespon dalam milidetik (1s = 1.000ms).
                                 </p>
+                                <div class="d-flex flex-column gap-2 small">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <span class="badge bg-success-subtle text-success fw-bold px-2 py-1">&lt; 300 ms</span>
+                                        <span class="text-muted">Cepat (Sangat Baik)</span>
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <span class="badge bg-warning-subtle text-warning fw-bold px-2 py-1">300 - 800 ms</span>
+                                        <span class="text-muted">Sedang (Standar Wajar)</span>
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <span class="badge bg-danger-subtle text-danger fw-bold px-2 py-1">&gt; 800 ms</span>
+                                        <span class="text-muted">Lambat (Perlu Perhatian)</span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        </aside>
                     </div>
-
-                    <!-- Kumpulan Kartu Status HTTP Vertikal Compact -->
-                    <div class="guide-status-list mb-3">
-                        <span class="text-muted text-uppercase fw-bold d-block mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">Arti Kode HTTP</span>
-                        
-                        <div class="guide-compact-item mb-2">
-                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                <span class="guide-badge badge-http-200">200 OK</span>
-                                <span class="badge bg-success-subtle text-success border border-success-subtle">Aktif / Berhasil</span>
-                            </div>
-                            <p class="text-muted small mb-0 lh-sm">Website normal, data terkirim lengkap, dan dapat dibuka lancar.</p>
-                        </div>
-
-                        <div class="guide-compact-item mb-2">
-                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                <span class="guide-badge badge-http-300">301 / 302</span>
-                                <span class="badge bg-info-subtle text-info border border-info-subtle">Redirect</span>
-                            </div>
-                            <p class="text-muted small mb-0 lh-sm">Dialihkan otomatis (misal HTTP ke HTTPS atau SSO).</p>
-                        </div>
-
-                        <div class="guide-compact-item mb-2">
-                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                <span class="guide-badge badge-http-400">403 Forbidden</span>
-                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Akses Dibatasi</span>
-                            </div>
-                            <p class="text-muted small mb-0 lh-sm">Akses ditolak (butuh hak login khusus, token, atau firewall).</p>
-                        </div>
-
-                        <div class="guide-compact-item mb-2">
-                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                <span class="guide-badge badge-http-400">404 Not Found</span>
-                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Tidak Ada</span>
-                            </div>
-                            <p class="text-muted small mb-0 lh-sm">Alamat URL atau berkas halaman tidak ditemukan / dihapus.</p>
-                        </div>
-
-                        <div class="guide-compact-item mb-2">
-                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                <span class="guide-badge badge-http-500">500 / 502 / 530</span>
-                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Error Server</span>
-                            </div>
-                            <p class="text-muted small mb-0 lh-sm">Kesalahan skrip internal, database error, atau Bad Gateway.</p>
-                        </div>
-
-                        <div class="guide-compact-item mb-2">
-                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                <span class="guide-badge badge-http-0">ERR / Timeout</span>
-                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Down / Timeout</span>
-                            </div>
-                            <p class="text-muted small mb-0 lh-sm">Server tidak merespon (&gt; 12 detik) atau domain mati.</p>
-                        </div>
-                    </div>
-
-                    <!-- Keterangan Satuan Respon (ms) -->
-                    <div class="p-3 bg-light rounded-3 border">
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <i class="bi bi-speedometer2 text-primary"></i>
-                            <span class="fw-bold small text-dark">Waktu Respon (ms)</span>
-                        </div>
-                        <p class="text-muted small mb-2 lh-sm" style="font-size: 0.78rem;">
-                            Waktu yang dibutuhkan server untuk merespon dalam milidetik (1s = 1.000ms).
-                        </p>
-                        <div class="d-flex flex-column gap-2 small">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <span class="badge bg-success-subtle text-success fw-bold px-2 py-1">&lt; 300 ms</span>
-                                <span class="text-muted">Cepat (Sangat Baik)</span>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-between">
-                                <span class="badge bg-warning-subtle text-warning fw-bold px-2 py-1">300 - 800 ms</span>
-                                <span class="text-muted">Sedang (Standar Wajar)</span>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-between">
-                                <span class="badge bg-danger-subtle text-danger fw-bold px-2 py-1">&gt; 800 ms</span>
-                                <span class="text-muted">Lambat (Perlu Perhatian)</span>
-                            </div>
-                        </div>
-                    </div>
-                </aside>
+                </div>
             </div>
         </div>
     </main>
@@ -721,6 +795,11 @@ $currentUser = Auth::user();
             </div>
         </div>
     </div>
+
+    <!-- Tombol Melayang Scroll to Top (Memudahkan Navigasi Mobile) -->
+    <button type="button" class="btn btn-primary btn-floating-top shadow-lg" id="btnScrollTop" onclick="scrollToTop()" title="Kembali ke Atas" style="display: none;">
+        <i class="bi bi-chevron-up"></i>
+    </button>
 
     <!-- Bootstrap 5.3 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

@@ -21,6 +21,7 @@ let appState = {
     searchQuery: '',
     selectedCategory: 'all',
     selectedStatus: 'all',
+    viewMode: localStorage.getItem('preferredViewMode') || (window.innerWidth < 768 ? 'card' : 'table'),
     isLoggedIn: typeof IS_LOGGED_IN !== 'undefined' ? IS_LOGGED_IN : false
 };
 
@@ -35,6 +36,7 @@ function initApp() {
     initGuideSidebarState();
     updateLiveClock();
     setInterval(updateLiveClock, 1000);
+    initScrollToTop();
 }
 
 function updateLiveClock() {
@@ -133,13 +135,48 @@ function setIndicatorChecking(current, total) {
     }
 }
 
-// Render tabel utama dengan hierarki Fakultas / Prodi
+// Render tabel / kartu utama dengan hierarki Fakultas / Prodi
 function renderTable() {
     const tbody = document.getElementById('monitoringTableBody');
-    tbody.innerHTML = '';
-    tbody.classList.remove('table-fade-in');
-    void tbody.offsetWidth; // trigger CSS animation reflow
-    tbody.classList.add('table-fade-in');
+    const cardsContainer = document.getElementById('monitoringCardsContainer');
+    const tableContainer = document.getElementById('monitoringTableContainer');
+    const btnViewCard = document.getElementById('btnViewCard');
+    const btnViewTable = document.getElementById('btnViewTable');
+
+    // Update state tombol toggle tampilan
+    if (btnViewCard && btnViewTable) {
+        if (appState.viewMode === 'card') {
+            btnViewCard.classList.add('active');
+            btnViewCard.classList.remove('text-secondary');
+            btnViewTable.classList.remove('active');
+            btnViewTable.classList.add('text-secondary');
+        } else {
+            btnViewTable.classList.add('active');
+            btnViewTable.classList.remove('text-secondary');
+            btnViewCard.classList.remove('active');
+            btnViewCard.classList.add('text-secondary');
+        }
+    }
+
+    if (appState.viewMode === 'card') {
+        if (tableContainer) tableContainer.classList.add('d-none');
+        if (cardsContainer) {
+            cardsContainer.classList.remove('d-none');
+            cardsContainer.innerHTML = '';
+            cardsContainer.classList.remove('table-fade-in');
+            void cardsContainer.offsetWidth; // trigger reflow
+            cardsContainer.classList.add('table-fade-in');
+        }
+    } else {
+        if (cardsContainer) cardsContainer.classList.add('d-none');
+        if (tableContainer) tableContainer.classList.remove('d-none');
+        if (tbody) {
+            tbody.innerHTML = '';
+            tbody.classList.remove('table-fade-in');
+            void tbody.offsetWidth; // trigger reflow
+            tbody.classList.add('table-fade-in');
+        }
+    }
 
     const query = appState.searchQuery.toLowerCase().trim();
     const catFilter = appState.selectedCategory;
@@ -174,35 +211,58 @@ function renderTable() {
 
         visibleGroupCount++;
 
-        // Header Grup Fakultas / Unit
-        const groupHeaderRow = document.createElement('tr');
-        groupHeaderRow.className = 'faculty-group-row';
-        const colSpan = appState.isLoggedIn ? 7 : 6;
-        groupHeaderRow.innerHTML = `
-            <td colspan="${colSpan}">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="faculty-badge">
-                            <i class="bi bi-diagram-3-fill text-primary"></i>
-                            ${escapeHtml(group.name)}
-                            ${group.code ? `<span class="badge bg-secondary-subtle text-secondary ms-1">${escapeHtml(group.code)}</span>` : ''}
-                        </span>
-                        <span class="text-muted small">(${filteredItems.length} website dipantau)</span>
-                    </div>
+        if (appState.viewMode === 'card') {
+            // Mode Kartu untuk Mobile
+            const groupHeaderEl = document.createElement('div');
+            groupHeaderEl.className = 'faculty-card-group-header mb-2 mt-3 first:mt-0';
+            groupHeaderEl.innerHTML = `
+                <div class="d-flex align-items-center justify-content-between py-2 px-3 bg-light rounded-3 border">
+                    <span class="faculty-badge">
+                        <i class="bi bi-diagram-3-fill text-primary"></i>
+                        <span>${escapeHtml(group.name)}</span>
+                        ${group.code ? `<span class="badge bg-secondary-subtle text-secondary ms-1">${escapeHtml(group.code)}</span>` : ''}
+                    </span>
+                    <span class="badge bg-white border text-muted small fw-semibold">${filteredItems.length} website</span>
                 </div>
-            </td>
-        `;
-        tbody.appendChild(groupHeaderRow);
+            `;
+            cardsContainer.appendChild(groupHeaderEl);
 
-        // Sub-item Prodi / Website
-        filteredItems.forEach(item => {
-            globalCounter++;
-            const tr = document.createElement('tr');
-            tr.id = `row-web-${item.id}`;
-            tr.className = 'prodi-item-row';
-            tr.innerHTML = generateRowHtml(globalCounter, item);
-            tbody.appendChild(tr);
-        });
+            filteredItems.forEach(item => {
+                globalCounter++;
+                const cardDiv = document.createElement('div');
+                cardDiv.innerHTML = generateCardHtml(globalCounter, item);
+                cardsContainer.appendChild(cardDiv.firstElementChild);
+            });
+        } else {
+            // Mode Tabel Tradisional
+            const groupHeaderRow = document.createElement('tr');
+            groupHeaderRow.className = 'faculty-group-row';
+            const colSpan = appState.isLoggedIn ? 7 : 6;
+            groupHeaderRow.innerHTML = `
+                <td colspan="${colSpan}">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="faculty-badge">
+                                <i class="bi bi-diagram-3-fill text-primary"></i>
+                                ${escapeHtml(group.name)}
+                                ${group.code ? `<span class="badge bg-secondary-subtle text-secondary ms-1">${escapeHtml(group.code)}</span>` : ''}
+                            </span>
+                            <span class="text-muted small">(${filteredItems.length} website dipantau)</span>
+                        </div>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(groupHeaderRow);
+
+            filteredItems.forEach(item => {
+                globalCounter++;
+                const tr = document.createElement('tr');
+                tr.id = `row-web-${item.id}`;
+                tr.className = 'prodi-item-row';
+                tr.innerHTML = generateRowHtml(globalCounter, item);
+                tbody.appendChild(tr);
+            });
+        }
     });
 
     if (visibleGroupCount === 0) {
@@ -212,18 +272,117 @@ function renderTable() {
             emptyMsg = 'Tidak ada website yang mengalami gangguan / error server. Semua layanan berjalan lancar! 🎉';
             iconClass = 'bi-check-circle text-success';
         }
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="${appState.isLoggedIn ? 7 : 6}" class="text-center py-5 text-muted">
-                    <i class="bi ${iconClass} fs-1 d-block mb-2 opacity-50"></i>
-                    ${emptyMsg}
-                </td>
-            </tr>
+
+        const emptyHtml = `
+            <div class="text-center py-5 text-muted">
+                <i class="bi ${iconClass} fs-1 d-block mb-2 opacity-50"></i>
+                <p class="mb-0">${emptyMsg}</p>
+            </div>
         `;
+
+        if (appState.viewMode === 'card' && cardsContainer) {
+            cardsContainer.innerHTML = emptyHtml;
+        } else if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="${appState.isLoggedIn ? 7 : 6}">
+                        ${emptyHtml}
+                    </td>
+                </tr>
+            `;
+        }
     }
 }
 
-// Menghasilkan HTML untuk setiap baris data
+// Beralih antara Tampilan Kartu & Tampilan Tabel
+function setViewMode(mode) {
+    if (appState.viewMode === mode) return;
+    appState.viewMode = mode;
+    localStorage.setItem('preferredViewMode', mode);
+    renderTable();
+}
+
+// Menghasilkan HTML Kartu untuk Mode Mobile / Kartu
+function generateCardHtml(counter, item) {
+    const isAktif = item.last_status === 'Aktif';
+    const statusClass = isAktif ? 'active' : (item.last_status === 'Timeout' ? 'timeout' : 'error');
+    const statusIcon = isAktif ? 'check-circle-fill' : 'exclamation-triangle-fill';
+    const statusText = item.last_status || 'Belum Dicek';
+
+    const code = item.last_http_code || 0;
+    let codeBadgeClass = 'badge-http-0';
+    if (code >= 200 && code < 300) codeBadgeClass = 'badge-http-200';
+    else if (code >= 300 && code < 400) codeBadgeClass = 'badge-http-300';
+    else if (code >= 400 && code < 500) codeBadgeClass = 'badge-http-400';
+    else if (code >= 500) codeBadgeClass = 'badge-http-500';
+
+    const latency = item.last_response_time || 0;
+    let latencyClass = 'fast';
+    let latencyPercent = Math.min(100, Math.max(10, (latency / 1000) * 100));
+    if (latency > 600) latencyClass = 'slow';
+    else if (latency > 250) latencyClass = 'moderate';
+
+    const levelCode = item.level || 'S1';
+    const foundLevel = (appState.levels || []).find(l => l.code.toLowerCase() === levelCode.toLowerCase());
+    const levelClass = foundLevel ? foundLevel.badge_style : levelCode.toLowerCase();
+
+    return `
+        <div class="website-card mb-2" id="row-web-${item.id}">
+            <div class="d-flex align-items-center justify-content-between gap-2 mb-2 w-100" style="min-width: 0;">
+                <div class="d-flex align-items-center gap-1 gap-sm-2 min-w-0" style="min-width: 0; flex: 1 1 auto; overflow: hidden;">
+                    <span class="card-item-counter flex-shrink-0">#${counter}</span>
+                    <span class="level-tag ${levelClass} flex-shrink-0">${escapeHtml(item.level || 'S1')}</span>
+                    <span class="prodi-title text-truncate fw-bold text-dark" style="min-width: 0; display: block;" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span>
+                </div>
+                <span class="badge-status ${statusClass} flex-shrink-0 ms-auto" id="status-badge-${item.id}">
+                    <span class="status-dot"></span>
+                    <span>${escapeHtml(statusText)}</span>
+                </span>
+            </div>
+
+            <div class="mb-2">
+                <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="url-link d-inline-flex align-items-center gap-1 text-truncate w-100" title="${escapeHtml(item.url)}">
+                    <i class="bi bi-box-arrow-up-right text-muted flex-shrink-0"></i>
+                    <span class="text-truncate">${escapeHtml(item.url)}</span>
+                </a>
+                ${item.notes ? `<div class="text-muted small mt-1"><i class="bi bi-info-circle me-1"></i>${escapeHtml(item.notes)}</div>` : ''}
+            </div>
+
+            <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge-http ${codeBadgeClass}" id="code-badge-${item.id}">
+                        ${code > 0 ? code : 'ERR'}
+                    </span>
+                    <div class="latency-container" id="latency-box-${item.id}">
+                        <div class="latency-value ${latencyClass}">
+                            ${latency > 0 ? latency + ' ms' : '-'}
+                        </div>
+                        <div class="latency-bar-bg" style="width: 70px;">
+                            <div class="latency-bar-fill ${latencyClass}" style="width: ${latencyPercent}%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-1">
+                    <button type="button" class="btn btn-sm btn-light border rounded-pill px-2 py-1 text-primary d-inline-flex align-items-center gap-1" title="Cek Ulang Status" onclick="checkSingleWebsite(${item.id})">
+                        <i class="bi bi-arrow-clockwise" id="recheck-icon-${item.id}"></i>
+                        <span class="small fw-semibold">Cek</span>
+                    </button>
+                    ${appState.isLoggedIn ? `
+                    <button type="button" class="btn-action-icon" title="Edit Website" onclick="openEditModal(${item.id})">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button type="button" class="btn-action-icon btn-delete" title="Hapus Website" onclick="openDeleteModal(${item.id})">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Menghasilkan HTML untuk setiap baris data mode Tabel
 function generateRowHtml(counter, item) {
     const isAktif = item.last_status === 'Aktif';
     const statusClass = isAktif ? 'active' : (item.last_status === 'Timeout' ? 'timeout' : 'error');
@@ -269,7 +428,6 @@ function generateRowHtml(counter, item) {
         <td>
             <span class="badge-status ${statusClass}" id="status-badge-${item.id}">
                 <span class="status-dot"></span>
-                <i class="bi bi-${statusIcon} d-none"></i>
                 <span>${escapeHtml(statusText)}</span>
             </span>
         </td>
@@ -288,21 +446,21 @@ function generateRowHtml(counter, item) {
                 </div>
             </div>
         </td>
-        ${appState.isLoggedIn ? `
         <td class="text-end" style="width: 130px;">
             <div class="d-flex justify-content-end gap-1">
                 <button type="button" class="btn-action-icon btn-recheck" title="Cek Ulang Status" onclick="checkSingleWebsite(${item.id})">
                     <i class="bi bi-arrow-clockwise" id="recheck-icon-${item.id}"></i>
                 </button>
+                ${appState.isLoggedIn ? `
                 <button type="button" class="btn-action-icon" title="Edit Website" onclick="openEditModal(${item.id})">
                     <i class="bi bi-pencil"></i>
                 </button>
                 <button type="button" class="btn-action-icon btn-delete" title="Hapus Website" onclick="openDeleteModal(${item.id})">
                     <i class="bi bi-trash3"></i>
                 </button>
+                ` : ''}
             </div>
         </td>
-        ` : ''}
     `;
 }
 
@@ -515,6 +673,14 @@ function selectCategoryTab(catId) {
         filterSelect.value = catId;
     }
 
+    // Smooth scroll tab yang aktif ke tengah viewport tabs pada mobile
+    if (tabsContainer) {
+        const activeBtn = tabsContainer.querySelector(`button[data-category-id="${catId}"]`);
+        if (activeBtn) {
+            activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+    }
+
     updateTabSummaryText();
     renderTable();
 }
@@ -668,9 +834,17 @@ function populateLevelDropdown() {
 function setupEventListeners() {
     // Search
     const searchInput = document.getElementById('searchInput');
+    const btnClearSearch = document.getElementById('btnClearSearch');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             appState.searchQuery = e.target.value;
+            if (btnClearSearch) {
+                if (e.target.value.trim().length > 0) {
+                    btnClearSearch.classList.remove('d-none');
+                } else {
+                    btnClearSearch.classList.add('d-none');
+                }
+            }
             renderTable();
         });
     }
@@ -1681,9 +1855,20 @@ function triggerNativeDownload(url, filename) {
 }
 
 /**
- * Toggle Tampilkan / Sembunyikan Sidebar Panduan Status di sisi kanan
+ * Toggle Tampilkan / Sembunyikan Sidebar Panduan Status
+ * Di layar mobile (< 992px): Membuka / Menutup Bootstrap Offcanvas Drawer
+ * Di layar desktop (>= 992px): Membuka / Menutup Kolom Sidebar Kanan
  */
 function toggleGuideSidebar() {
+    if (window.innerWidth < 992) {
+        const offcanvasEl = document.getElementById('guideSidebarOffcanvas');
+        if (offcanvasEl) {
+            const bsOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+            bsOffcanvas.toggle();
+        }
+        return;
+    }
+
     const sidebarCol = document.getElementById('guideSidebarColumn');
     const tableCol = document.getElementById('tableColumn');
     const btnOpenGuide = document.getElementById('btnOpenGuide');
@@ -1713,8 +1898,9 @@ function toggleGuideSidebar() {
     }
 }
 
-// Inisialisasi status tampilan sidebar dari localStorage
+// Inisialisasi status tampilan sidebar dari localStorage (Hanya untuk desktop)
 function initGuideSidebarState() {
+    if (window.innerWidth < 992) return;
     const savedState = localStorage.getItem('showGuideSidebar');
     // Jika pengguna sebelumnya memilih menyembunyikan
     if (savedState === '0') {
@@ -1730,6 +1916,39 @@ function initGuideSidebarState() {
             }
         }
     }
+}
+
+// Hapus teks pencarian dengan 1 klik (Kemudahan Mobile)
+function clearSearch() {
+    const searchInput = document.getElementById('searchInput');
+    const btnClearSearch = document.getElementById('btnClearSearch');
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+    }
+    if (btnClearSearch) {
+        btnClearSearch.classList.add('d-none');
+    }
+    appState.searchQuery = '';
+    renderTable();
+}
+
+// Scroll mulus kembali ke atas halaman (Kemudahan Mobile)
+function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Inisialisasi tombol scroll to top
+function initScrollToTop() {
+    const btn = document.getElementById('btnScrollTop');
+    window.addEventListener('scroll', () => {
+        if (!btn) return;
+        if (window.scrollY > 300) {
+            btn.style.display = 'flex';
+        } else {
+            btn.style.display = 'none';
+        }
+    }, { passive: true });
 }
 
 /**
