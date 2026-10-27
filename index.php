@@ -56,13 +56,7 @@ $currentUser = Auth::user();
 
                 <!-- Grouped Action Buttons (Selalu Rapi Berjajar di Kanan) -->
                 <div class="d-flex align-items-center gap-2 flex-nowrap">
-                    <?php if ($isLoggedIn): ?>
-                        <!-- Tombol Export XLSX (Hanya Admin) -->
-                        <button type="button" class="btn btn-header-action btn-outline-success" id="btnExportXlsx" onclick="exportToXlsx()" title="Export data status website ke Excel (.xlsx)">
-                            <i class="bi bi-file-earmark-excel-fill text-success"></i>
-                            <span>Export XLSX</span>
-                        </button>
-                    <?php endif; ?>
+
 
                     <!-- Tombol Cek Semua (Semua Pengunjung) -->
                     <button type="button" class="btn btn-header-action btn-outline-primary" id="btnCheckAll" onclick="checkAllWebsites()">
@@ -409,14 +403,7 @@ $currentUser = Auth::user();
                         Masuk sebagai administrator untuk mengelola data website, mengakses menu pengaturan, dan mendownload laporan Excel.
                     </p>
 
-                    <!-- Alert Akun Default -->
-                    <div class="alert alert-primary border-primary-subtle d-flex align-items-start gap-2 p-2 mb-3 rounded-3 small">
-                        <i class="bi bi-info-circle-fill text-primary mt-1 flex-shrink-0"></i>
-                        <div class="lh-sm">
-                            <span class="fw-bold d-block text-primary">Akun Default Sistem:</span>
-                            <span class="text-dark">Username: <strong>admin</strong> | Password: <strong>admin123</strong></span>
-                        </div>
-                    </div>
+
 
                     <form id="loginForm" onsubmit="handleLoginSubmit(event)">
                         <!-- Username -->
